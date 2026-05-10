@@ -307,7 +307,6 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
             fi
 
             cp -vf /var/www/html/version.php "$VERSION_FILE_LOCATION"
-            chown -c $user:$group "$VERSION_FILE_LOCATION"
 
             echo "Initializing finished"
         fi
