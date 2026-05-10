@@ -173,10 +173,14 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
             flock 9
         fi
 
+        if [ -z "$VERSION_FILE_LOCATION" ]; then
+            VERSION_FILE_LOCATION="/var/www/html/config/version.php"
+        fi
+
         installed_version="0.0.0.0"
-        if [ -f /var/www/html/config/version.php ]; then
+        if [ -f "$VERSION_FILE_LOCATION" ]; then
             # shellcheck disable=SC2016
-            installed_version="$(php -r 'require "/var/www/html/config/version.php"; echo implode(".", $OC_Version);')"
+            installed_version="$(php -r "require '$VERSION_FILE_LOCATION'; echo implode('.', \$OC_Version);")"
         fi
         # shellcheck disable=SC2016
         image_version="$(php -r 'require "/var/www/html/version.php"; echo implode(".", $OC_Version);')"
@@ -255,7 +259,7 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
                         echo "Starting nextcloud installation"
                         max_retries=10
                         try=0
-                        until  [ "$try" -gt "$max_retries" ] || run_as "php /var/www/html/occ maintenance:install $install_options" 
+                        until  [ "$try" -gt "$max_retries" ] || run_as "php /var/www/html/occ maintenance:install $install_options"
                         do
                             echo "Retrying install..."
                             try=$((try+1))
@@ -280,8 +284,8 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
                         run_path post-installation
 		    fi
                 fi
-		# not enough specified to do a fully automated installation 
-                if [ "$install" = false ]; then 
+		# not enough specified to do a fully automated installation
+                if [ "$install" = false ]; then
                     echo "Next step: Access your instance to finish the web-based installation!"
                     echo "Hint: You can specify NEXTCLOUD_ADMIN_USER and NEXTCLOUD_ADMIN_PASSWORD and the database variables _prior to first launch_ to fully automate initial installation."
                 fi
@@ -302,8 +306,8 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
                 run_path post-upgrade
             fi
 
-            cp -vf /var/www/html/version.php /var/www/html/config/
-            chown -c $user:$group /var/www/html/config/version.php
+            cp -vf /var/www/html/version.php "$VERSION_FILE_LOCATION"
+            chown -c $user:$group "$VERSION_FILE_LOCATION"
 
             echo "Initializing finished"
         fi
